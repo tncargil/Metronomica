@@ -240,6 +240,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.12.0"
+  metronome:
+    dependency: "direct main"
+    description:
+      name: metronome
+      sha256: ce8d425eb810d0b2cf5211d027a06cd1ddc387f77aa63fbdf9441a6f8830660a
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.4"
   path:
     dependency: transitive
     description:
