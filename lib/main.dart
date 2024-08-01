@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/services.dart';
-import 'dart:async';
-
 import 'package:metronome/metronome.dart';
 
 void main() {
@@ -21,6 +18,7 @@ class MyApp extends StatelessWidget {
         // This is the theme of your application.
         //
         // TRY THIS: Try running your application with "flutter run". You'll see
+        scaffoldBackgroundColor: Colors.grey,
         // the application has a purple toolbar. Then, without quitting the app,
         // try changing the seedColor in the colorScheme below to Colors.green
         // and then invoke "hot reload" (save your changes or press the "hot
@@ -33,10 +31,10 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Metronomica'),
     );
   }
 }
@@ -50,8 +48,6 @@ class MyHomePage extends StatefulWidget {
 
   // This class is the configuration for the state. It holds the values (in this
   // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -62,7 +58,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final metronome = Metronome();
   final player = AudioPlayer();
-
+  int bpm = 120;
+  bool isPlaying = false;
   void playMetronome() {
     metronome.play(120);
   }
@@ -70,6 +67,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void playSoundThingy() async {
     await player.play(AssetSource("click.mp3"));
     //await SystemSound.play(SystemSoundType.click);
+  }
+
+  void updateBpm(int tempoChangeAmount) {
+    bpm += tempoChangeAmount;
+    metronome.setBPM(bpm);
+    setState(() {
+    });
   }
 
   @override
@@ -83,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     metronome.init(
-      'assets/woodblock.wav',
+      'assets/snare44_wav.wav',
       bpm: 120,
       volume: 50,
       enableTickCallback: true,
@@ -105,11 +109,14 @@ class _MyHomePageState extends State<MyHomePage> {
         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
         // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        foregroundColor: Colors.black,
+
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
+        //TextButton(style: TextButton(onPressed: (){bpm += 5}, child: Text('+')));
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
@@ -123,26 +130,65 @@ class _MyHomePageState extends State<MyHomePage> {
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
           //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
+          // TRY THIS: Invoke "ebug painting" (choose the "Toggle Debug Paint"
           // action in the IDE, or press "p" in the console), to see the
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
             Text(
-              'test',
+              bpm.round().toString(),
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Slider(
+              value: bpm.toDouble(),
+              max: 300,
+              divisions: 300,
+              onChangeEnd: (value) {
+                metronome.setBPM(bpm);
+              },
+              onChanged: (value) {
+                bpm = value.toInt();
+                setState(() {
+                });
+              },
+            ),
+            FloatingActionButton(
+              
+              onPressed: () async {
+                if(isPlaying) {
+                metronome.pause();
+              } else {
+                metronome.play(bpm);
+              }
+                isPlaying = !isPlaying; 
+              },
+              enableFeedback: false,
+              tooltip: 'Play',
+              child: const Icon(Icons.play_arrow),
+            ), // 
+            const Spacer(),
+            Row(        
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[ 
+            FloatingActionButton(onPressed: ()
+            {
+                updateBpm(5);
+              },
+              enableFeedback: false,
+              child: const Icon(Icons.add),
+            ),
+            FloatingActionButton(onPressed: ()
+            {
+                updateBpm(-5);
+              },
+              enableFeedback: false,
+              child: const Icon(Icons.remove),    
+            ),],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: playMetronome,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+//This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
