@@ -135,10 +135,12 @@ class _MyHomePageState extends State<MyHomePage> {
           // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+          SizedBox(height: 280),
             Text(
               bpm.round().toString(),
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+          SizedBox(height: 10),
             Slider(
               value: bpm.toDouble(),
               max: 300,
@@ -152,6 +154,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
             ),
+            SizedBox(height: 30),
             FloatingActionButton(
               
               onPressed: () async {
@@ -170,22 +173,30 @@ class _MyHomePageState extends State<MyHomePage> {
             Row(        
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[ 
-            FloatingActionButton(onPressed: ()
-            {
-                updateBpm(5);
-              },
-              enableFeedback: false,
-              child: const Icon(Icons.add),
+                FloatingActionButton(onPressed: ()
+                {
+                    updateBpm(5);
+                  },
+                  enableFeedback: false,
+                  child: const Icon(Icons.add),
+                ),
+              ],
             ),
-            FloatingActionButton(onPressed: ()
-            {
-                updateBpm(-5);
-              },
-              enableFeedback: false,
-              child: const Icon(Icons.remove),    
-            ),],
+            SizedBox(height: 20),
+            Row(        
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[ 
+                FloatingActionButton(onPressed: ()
+                {
+                    updateBpm(-5);
+                  },
+                  enableFeedback: false,
+                  child: const Icon(Icons.remove),
+                ),
+              ],
             ),
-          ],
+          SizedBox(height: 200),
+         ],
         ),
       ),
 //This trailing comma makes auto-formatting nicer for build methods.
