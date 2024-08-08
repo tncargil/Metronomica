@@ -15,10 +15,16 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          sizeConstraints: BoxConstraints.tightFor(
+            width: 70,
+            height: 70,
+          ),
+        ),
         // This is the theme of your application.
         //
         // TRY THIS: Try running your application with "flutter run". You'll see
-        scaffoldBackgroundColor: Colors.grey,
+        scaffoldBackgroundColor: Colors.black,
         // the application has a purple toolbar. Then, without quitting the app,
         // try changing the seedColor in the colorScheme below to Colors.green
         // and then invoke "hot reload" (save your changes or press the "hot
@@ -31,8 +37,8 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
-        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Color(0x670101)),
+        //useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Metronomica'),
     );
@@ -59,7 +65,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final metronome = Metronome();
   final player = AudioPlayer();
   int bpm = 120;
+  int incrementAmount = 5;
   bool isPlaying = false;
+  double tuningValue = 0.0;
+
   void playMetronome() {
     metronome.play(120);
   }
@@ -68,6 +77,10 @@ class _MyHomePageState extends State<MyHomePage> {
     await player.play(AssetSource("click.mp3"));
     //await SystemSound.play(SystemSoundType.click);
   }
+
+  void checkTuning() {
+
+  } 
 
   void updateBpm(int tempoChangeAmount) {
     bpm += tempoChangeAmount;
@@ -96,110 +109,114 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         foregroundColor: Colors.black,
-
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        //TextButton(style: TextButton(onPressed: (){bpm += 5}, child: Text('+')));
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "ebug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-          SizedBox(height: 280),
-            Text(
-              bpm.round().toString(),
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          SizedBox(height: 10),
-            Slider(
-              value: bpm.toDouble(),
-              max: 300,
-              divisions: 300,
-              onChangeEnd: (value) {
-                metronome.setBPM(bpm);
-              },
-              onChanged: (value) {
-                bpm = value.toInt();
-                setState(() {
-                });
-              },
-            ),
-            SizedBox(height: 30),
-            FloatingActionButton(
-              
-              onPressed: () async {
-                if(isPlaying) {
-                metronome.pause();
-              } else {
-                metronome.play(bpm);
-              }
-                isPlaying = !isPlaying; 
-              },
-              enableFeedback: false,
-              tooltip: 'Play',
-              child: const Icon(Icons.play_arrow),
-            ), // 
-            const Spacer(),
-            Row(        
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[ 
-                FloatingActionButton(onPressed: ()
-                {
-                    updateBpm(5);
+      body: Stack(
+        children: [
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const SizedBox(height: 250),
+                Text(
+                  bpm.round().toString(),
+                  style: const TextStyle(color: Colors.white, fontSize: 40),
+                ),
+                const SizedBox(height: 20),
+                Slider(
+                  value: bpm.toDouble(),
+                  max: 300,
+                  divisions: 300,
+                  onChangeEnd: (value) {
+                    metronome.setBPM(bpm);
+                  },
+                  onChanged: (value) {
+                    bpm = value.toInt();
+                    setState(() {});
+                  },
+                ),
+                const SizedBox(height: 40),
+                FloatingActionButton(
+                  onPressed: () async {
+                    if (isPlaying) {
+                      metronome.pause();
+                    } else {
+                      metronome.play(bpm);
+                    }
+                    setState(() {
+                      isPlaying = !isPlaying;
+                    });
                   },
                   enableFeedback: false,
-                  child: const Icon(Icons.add),
+                  tooltip: 'Play',
+                  child: const Icon(Icons.play_arrow),
+                ),
+                const Spacer(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      onPressed: () {
+                        updateBpm(incrementAmount);
+                      },
+                      enableFeedback: false,
+                      child: const Icon(Icons.add),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      onPressed: () {
+                        updateBpm(-incrementAmount);
+                      },
+                      enableFeedback: false,
+                      child: const Icon(Icons.remove),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 90),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    FloatingActionButton(
+                      onPressed: () {
+                        setState(() {
+                          if (incrementAmount == 5) {
+                            incrementAmount = 10;
+                          } else if (incrementAmount == 10) {
+                            incrementAmount = 1;
+                          } else if (incrementAmount == 1) {
+                            incrementAmount = 5;
+                          }
+                        });
+                      },
+                      enableFeedback: false,
+                      child: Text(incrementAmount.toString()),
+                    ),
+                  ],
                 ),
               ],
             ),
-            SizedBox(height: 20),
-            Row(        
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[ 
-                FloatingActionButton(onPressed: ()
-                {
-                    updateBpm(-5);
-                  },
-                  enableFeedback: false,
-                  child: const Icon(Icons.remove),
-                ),
-              ],
+          ),
+          Positioned(
+            top: 10,
+            left: 10,
+            child: ElevatedButton(
+              onPressed: () {
+                checkTuning();
+              },
+              child: const Icon(Icons.music_note),
             ),
-          SizedBox(height: 200),
-         ],
-        ),
+          ),
+        ],
       ),
-//This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
