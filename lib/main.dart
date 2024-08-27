@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:metronome/metronome.dart';
+import 'package:flutter_audio_capture/flutter_audio_capture.dart';
+import 'package:pitch_detector_dart/pitch_detector.dart';
+import 'package:pitchupdart/pitch_handler.dart';
+import 'package:pitchupdart/instrument_type.dart';
+import 'dart:typed_data';
+import 'dart:math';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Metronome',
       theme: ThemeData(
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           sizeConstraints: BoxConstraints.tightFor(
@@ -37,7 +43,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Color(0x670101)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0x00670101)),
         //useMaterial3: true,
       ),
       home: const MyHomePage(title: 'Metronomica'),
@@ -67,26 +73,73 @@ class _MyHomePageState extends State<MyHomePage> {
   int bpm = 120;
   int incrementAmount = 5;
   bool isPlaying = false;
-  double tuningValue = 0.0;
+
+  bool isTuning = false;
+  final _audioRecorder = FlutterAudioCapture(); 
+  final pitchDetectorDart = PitchDetector();
+  final pitchupDart = PitchHandler(InstrumentType.guitar);
+  String note = "c";
+  var status = "";
 
   void playMetronome() {
     metronome.play(120);
   }
-
-  void playSoundThingy() async {
-    await player.play(AssetSource("click.mp3"));
-    //await SystemSound.play(SystemSoundType.click);
-  }
-
-  void checkTuning() {
-
-  } 
 
   void updateBpm(int tempoChangeAmount) {
     bpm += tempoChangeAmount;
     metronome.setBPM(bpm);
     setState(() {
     });
+  }
+
+  Future<void> _startCapture() async {
+    await _audioRecorder.start(listener, onError,
+        sampleRate: 44100, bufferSize: 3000);
+
+    setState(() {
+      note = "";
+    });
+  }
+
+  Future<void> _stopCapture() async {
+    await _audioRecorder.stop();
+
+    setState(() {
+      note = "";
+      status = "Click on start";
+    });  
+  }
+
+  void listener(dynamic obj) {    //Gets the audio sample
+    var buffer = Float64List.fromList(obj.cast<double>());
+    final List<double> audioSample = buffer.toList();
+    //Uses pitch_detector_dart library to detect a pitch from the audio sample
+    final double sampleRate = 44100.0;
+    final double f0 = 440.0;
+    final double amplitudeF0 = 0.5;
+    final List<double> buffer2 = List<double>.filled(200, 0.0);
+
+    for (int sample = 0; sample < buffer2.length; sample++) {
+      final double time = sample / sampleRate;
+      buffer2[sample] = (amplitudeF0 * sin(2 * pi * f0 * time)).toDouble();
+    }
+    //pitchDetectorDart.getPitchFromFloatBuffer(audioSample).then((detectedPitch){
+    pitchDetectorDart.getPitchFromFloatBuffer(buffer2).then((detectedPitch) {
+    if (detectedPitch != null) {
+       pitchupDart.handlePitch(detectedPitch.pitch).then((pitchResult) => {
+          setState(() {
+            note = pitchResult.note; 
+            status = "tuning";
+          }),
+        });
+      }
+    });  
+
+  
+  }
+
+  void onError(Object e) {
+    print("ERROR: $e");
   }
 
   @override
@@ -105,6 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
       volume: 50,
       enableTickCallback: true,
     );
+
   }
 
   @override
@@ -181,7 +235,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 90),
+                const SizedBox(height: 60),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
@@ -205,16 +259,25 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
-          Positioned(
-            top: 10,
-            left: 10,
-            child: ElevatedButton(
-              onPressed: () {
-                checkTuning();
-              },
-              child: const Icon(Icons.music_note),
-            ),
-          ),
+          //Positioned(
+          //  top: 10,
+          //  left: 10,
+          //  child: ElevatedButton(
+          //    onPressed: () {
+          //      setState(() {
+          //        isTuning = !isTuning;
+          //        if(isTuning && isPlaying) {
+          //          isPlaying = false;
+          //          metronome.pause();
+          //        }
+          //      });
+          //      _startCapture();
+          //    },
+          //    child: isTuning
+          //    ? Text(note)
+          //    : const Icon(Icons.music_note),
+          //  ),
+          //),
         ],
       ),
     );
