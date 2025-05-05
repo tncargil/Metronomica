@@ -1,10 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:metronome/metronome.dart';
-import 'package:flutter_audio_capture/flutter_audio_capture.dart';
-import 'package:pitch_detector_dart/pitch_detector.dart';
-import 'package:pitchupdart/pitch_handler.dart';
-import 'package:pitchupdart/instrument_type.dart';
 import 'dart:typed_data';
 import 'dart:math';
 
@@ -69,15 +64,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final metronome = Metronome();
-  final player = AudioPlayer();
   int bpm = 120;
   int incrementAmount = 5;
   bool isPlaying = false;
 
   bool isTuning = false;
-  final _audioRecorder = FlutterAudioCapture(); 
-  final pitchDetectorDart = PitchDetector();
-  final pitchupDart = PitchHandler(InstrumentType.guitar);
   String note = "c";
   var status = "";
 
@@ -92,23 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Future<void> _startCapture() async {
-    await _audioRecorder.start(listener, onError,
-        sampleRate: 44100, bufferSize: 3000);
-
-    setState(() {
-      note = "";
-    });
-  }
-
-  Future<void> _stopCapture() async {
-    await _audioRecorder.stop();
-
-    setState(() {
-      note = "";
-      status = "Click on start";
-    });  
-  }
 
   void listener(dynamic obj) {    //Gets the audio sample
     var buffer = Float64List.fromList(obj.cast<double>());
@@ -124,16 +98,6 @@ class _MyHomePageState extends State<MyHomePage> {
       buffer2[sample] = (amplitudeF0 * sin(2 * pi * f0 * time)).toDouble();
     }
     //pitchDetectorDart.getPitchFromFloatBuffer(audioSample).then((detectedPitch){
-    pitchDetectorDart.getPitchFromFloatBuffer(buffer2).then((detectedPitch) {
-    if (detectedPitch != null) {
-       pitchupDart.handlePitch(detectedPitch.pitch).then((pitchResult) => {
-          setState(() {
-            note = pitchResult.note; 
-            status = "tuning";
-          }),
-        });
-      }
-    });  
 
   
   }
